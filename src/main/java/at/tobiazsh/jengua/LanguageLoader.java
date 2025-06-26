@@ -27,13 +27,13 @@ public class LanguageLoader {
      * Loads a Language from a JSON file.
      * The JSON file must contain a "locale" key and context objects with string translations.
      *
-     * @param file the JSON file to load
+     * @param languageFile the JSON file to load
      * @return a Language object containing the locale and contexts
      * @throws IOException if an error occurs while reading the file
      * @throws IllegalArgumentException if the JSON structure is invalid
      */
-    public static Language loadLanguage(File file) throws IOException {
-        try (Reader reader = new FileReader(file)) {
+    public static Language loadLanguage(File languageFile) throws IOException {
+        try (Reader reader = new FileReader(languageFile)) {
             JsonElement root = JsonParser.parseReader(reader);
             JsonObject rootObject = root.getAsJsonObject();
 

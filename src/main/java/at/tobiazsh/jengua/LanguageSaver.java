@@ -40,11 +40,11 @@ public class LanguageSaver {
      * The JSON structure will contain a "locale" key and context objects with string translations.
      *
      * @param language the Language object to save
-     * @param file the file to save the language to
+     * @param languageFile the file of the given language
      * @throws IOException if an error occurs while writing to the file
      */
-    public static void saveLanguage(Language language, File file) throws IOException {
-        createBackup(file); // Create a backup before saving
+    public static void saveLanguage(Language language, File languageFile) throws IOException {
+        createBackup(languageFile); // Create a backup before saving
 
         JsonObject root = new JsonObject();
         root.addProperty("locale", language.code());
@@ -64,7 +64,7 @@ public class LanguageSaver {
             root.add(contextEntry.getKey(), contextJson);
         }
 
-        try (Writer writer = new FileWriter(file)) {
+        try (Writer writer = new FileWriter(languageFile)) {
             gson.toJson(root, writer);
         }
     }
