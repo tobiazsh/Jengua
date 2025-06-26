@@ -37,6 +37,23 @@ public class Translator {
     }
 
     /**
+     * Adds a language to the translator.
+     * @param language the language to add
+     * @throws IllegalArgumentException if Language is null
+     */
+    public void addLanguage(Language language) throws IllegalArgumentException {
+        if (language == null) {
+            throw new IllegalArgumentException("Language cannot be null");
+        }
+
+        if (languages.containsKey(language.code())) {
+            return; // Language already loaded, no need to add again
+        }
+
+        languages.put(language.code(), language);
+    }
+
+    /**
      * Sets the current language for translations.
      * @param languageCode the code of the language to set as current
      */
