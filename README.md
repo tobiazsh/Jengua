@@ -78,12 +78,12 @@ Here's a short checklist of what to do and an example of how to use Jengua in yo
 
 1. Place the language files somewhere accessible
 2. Add the Jengua library to your project. This can be done in plain Java or with Maven. Tutorial for the Maven method is further down this README.
-3. Inside a class, load the fallback and default `Language` using `LanguageLoader.loadLangauge(File languageFile)`, and then create an instance of the `Translator`-class:
+3. Inside a class, load the fallback and default `Language` using `LanguageLoader.loadLanguage(File languageFile)`, and then create an instance of the `Translator`-class:
 ```java
 public class Main {
     
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
     
     public static void main(String[] args) {
@@ -110,7 +110,7 @@ public class Main {
     }
 }
 ```
-4. Then you can add languages using `translator.addLanguage(Language language)` or via `translator.loadLangauge(File languageFile)`:
+4. Then you can add languages using `translator.addLanguage(Language language)` or via `translator.loadLanguage(File languageFile)`:
 
 ```java
 import java.io.IOException;
@@ -118,7 +118,7 @@ import java.io.IOException;
 public class Main {
 
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
 
     public static void main(String[] args) {
@@ -149,14 +149,14 @@ public class Main {
 public class Main {
 
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
     
     public static void main(String[] args) {
         
         // ...
         
-        translator.setLangauge("de-DE"); // Set the current language to German (Germany)
+        translator.setLanguage("de-DE"); // Set the current language to German (Germany)
         
         // ...
     }
@@ -167,7 +167,7 @@ public class Main {
 public class Main {
 
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
     
     public static void main(String[] args) {
@@ -187,7 +187,7 @@ this format, or do it manually in one run:
 public class Main {
 
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
     
     public static void main(String[] args) {
@@ -208,7 +208,7 @@ public class Main {
 public class Main {
 
     public static Translator translator;
-    public static Langauge defaultAndFallbackLanguage;
+    public static Language defaultAndFallbackLanguage;
     private static File defaultLanguageFile = new File("src/resources/lang/fallback_en-us.json");
     
     public static void main(String[] args) {
@@ -248,7 +248,7 @@ public class Main {
             // Error handling...
         }
 
-        translator.setLangauge("de-DE"); // Set the current language to German (Germany)
+        translator.setLanguage("de-DE"); // Set the current language to German (Germany)
         
         String translated = translator.tr("MainWindow.Menu.File", "File"); // Translate the key "MainWindow.Menu.File" with the fallback "File"
         System.out.println(translated); // This will print "Neu" now
