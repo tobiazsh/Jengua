@@ -1,4 +1,4 @@
-package dev.tobiazsh.jengua;
+package io.github.tobiazsh.jengua;
 
 import java.io.File;
 import java.io.IOException;
