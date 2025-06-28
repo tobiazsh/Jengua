@@ -1,4 +1,4 @@
-package at.tobiazsh.jengua;
+package dev.tobiazsh.jengua;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
