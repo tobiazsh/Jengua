@@ -113,12 +113,15 @@ jreleaser {
             artifacts {
                 artifact {
                     path.set(buildDir.resolve("libs/Jengua-${projVer}.jar").toFile())
+                    platform.set("")
                 }
                 artifact {
                     path.set(buildDir.resolve("libs/Jengua-${projVer}-sources.jar").toFile())
+                    platform.set("sources")
                 }
                 artifact {
                     path.set(buildDir.resolve("libs/Jengua-${projVer}-javadoc.jar").toFile())
+                    platform.set("javadoc")
                 }
             }
         }
@@ -141,7 +144,7 @@ jreleaser {
                     password.set(localProperties.getProperty("sonatypePasswordToken"))
                     active.set(Active.RELEASE)
                     url.set("https://central.sonatype.com/api/v1/publisher")
-                    stagingRepository("target/staging-deploy")
+                    stagingRepository("build/libs")
                 }
             }
         }
