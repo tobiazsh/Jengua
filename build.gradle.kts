@@ -1,13 +1,18 @@
+import org.jreleaser.model.Active
+import java.nio.file.Path
 import java.util.Properties
 
 plugins {
     id("java")
+    id("org.jreleaser") version "1.17.0"
     id("maven-publish")
-    signing
 }
 
 group = project.property("group") as String
 version = project.property("version") as String
+
+val projVer = version.toString()
+val buildDir: Path = Path.of("./build")
 
 repositories {
     mavenCentral()
@@ -35,22 +40,27 @@ val localProperties = Properties().apply {
     }
 }
 
+val keyFile: File = File("./pgp/key.asc")
+val publicKeyFile: File = File("./pgp_public/public_key.pub")
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks["javadocJar"])
-            artifact(tasks["sourcesJar"])
 
             pom {
                 name.set("Jengua")
-                description.set("A stupidly-simple Java translations library")
+                description.set("A stupidly-simple Java translation library.")
                 url.set("https://github.com/tobiazsh/jengua")
 
                 licenses {
                     license {
                         name.set("MIT License")
-                        url.set("https://mit-license.org")
+                        url.set("https://mit-license.org/")
                     }
                 }
 
@@ -70,43 +80,80 @@ publishing {
             }
         }
     }
+}
 
-    repositories {
+jreleaser {
+    project {
+        authors.add("Tobias S.")
+        license.set("MIT")
+        links {
+            homepage.set("https://github.com/tobiazsh/jengua")
+        }
+        inceptionYear.set("2025")
+        version.set(projVer)
+        description.set("A stupidly-simple Java translation library.")
+    }
+
+    release {
+        github {
+            repoOwner.set("tobiazsh")
+            overwrite.set(true)
+            name.set("Jengua")
+            tagName.set("jengua_v${project.version}")
+            releaseName.set("Jengua v${project.version}")
+            draft.set(false)
+            prerelease.enabled.set(false)
+            token.set(localProperties.getProperty("github.token"))
+        }
+    }
+
+    distributions {
+        create("jengua") {
+            distributionType.set(org.jreleaser.model.Distribution.DistributionType.JAVA_BINARY)
+            artifacts {
+                artifact {
+                    path.set(buildDir.resolve("libs/Jengua-${projVer}.jar").toFile())
+                }
+                artifact {
+                    path.set(buildDir.resolve("libs/Jengua-${projVer}-sources.jar").toFile())
+                }
+                artifact {
+                    path.set(buildDir.resolve("libs/Jengua-${projVer}-javadoc.jar").toFile())
+                }
+            }
+        }
+    }
+
+    signing {
+        passphrase.set(localProperties.getProperty("signing.password") ?: System.getenv("SIGNING_PASSWORD"))
+        publicKey.set(publicKeyFile.readText())
+        secretKey.set(keyFile.readText())
+
+        active.set(Active.ALWAYS)
+        armored.set(true)
+    }
+
+    deploy {
         maven {
-            val releaseRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
-            val snapshotRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots")
-
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotRepoUrl else releaseRepoUrl
-
-            credentials {
-                username = localProperties.getProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME") ?: ""
-                password = localProperties.getProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD") ?: ""
+            mavenCentral {
+                create("sonatype") {
+                    username.set(localProperties.getProperty("sonatypeUsernameToken"))
+                    password.set(localProperties.getProperty("sonatypePasswordToken"))
+                    active.set(Active.RELEASE)
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    stagingRepository("target/staging-deploy")
+                }
             }
         }
     }
 }
 
-val keyFile: File = File("./pgp/key.asc")
-
-signing {
-    val signingKeyId: String? = localProperties.getProperty("signing.keyId") ?: System.getenv("SIGNING_KEY_ID")
-    val signingPassword: String? = localProperties.getProperty("signing.password") ?: System.getenv("SIGNING_PASSWORD")
-    val signingKey: String = keyFile.readText()
-
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    sign(publishing.publications["mavenJava"])
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
 tasks.register("verifyPublishingConfiguration") {
     doLast {
-
         // Files to check for existence
         val localProps = File("./local.properties")
         val keyFile = File("./pgp/key.asc")
+        val publicKeyFile = File("./pgp_public/public_key.pub")
 
         // Check if local.properties exists
         if (!localProps.exists()) {
@@ -117,9 +164,13 @@ tasks.register("verifyPublishingConfiguration") {
             throw GradleException("Missing PGP Key file for publication: " + keyFile.path)
         }
 
+        if (!publicKeyFile.exists()) {
+            throw GradleException("Missing PGP Public Key file for publication: " + publicKeyFile.path)
+        }
+
         val requiredProps = listOf(
-            "ossrhUsername", "ossrhPassword",
-            "signing.keyId", "signing.password"
+            "sonatypeUsernameToken", "sonatypePasswordToken",
+            "signing.keyId", "signing.password", "github.token"
         )
 
         val missingProps = requiredProps.filter { prop ->
