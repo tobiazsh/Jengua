@@ -274,7 +274,7 @@ public class Main {
 
 ### Maven Setup
 Jengua is also now available on Maven Central, so you can easily add it to your Java project using Maven or Gradle.
-To use Jengua using Maven, you can add the following dependency to your `pom.xml`:
+To use Jengua using Maven, you can add the following dependency to your `pom.xml` (! only an example, version may differ !):
 ```xml
 <repositories>
     <repository>
@@ -285,8 +285,8 @@ To use Jengua using Maven, you can add the following dependency to your `pom.xml
 
 <dependencies>
     <dependency>
-        <groupId>io.github.tobiazsh</groupId>
-        <artifactId>jengua</artifactId>
+        <groupId>io.github.tobiazsh.jengua</groupId>
+        <artifactId>Jengua</artifactId>
         <version>1.0.0</version>
     </dependency>
 </dependencies>
@@ -299,7 +299,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.tobiazsh:jengua:1.0.0'
+    implementation 'io.github.tobiazsh.jengua:Jengua:1.0.0'
 }
 ```
 
@@ -310,7 +310,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.tobiazsh:jengua:1.0.0")
+    implementation("io.github.tobiazsh.jengua:Jengua:1.0.0")
 }
 ```
 ## Building
