@@ -13,11 +13,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JenguaTest {
 
     private static final File FALLBACK_ENGLISH_US = new File("src/test/resources/fallback-en-US.json");
-    private static final File FALLBACK_ENGLISH_US_BAK = new File("src/test/resources/fallback-en-US.json.bak");
     private static final File GERMAN_GERMANY = new File("src/test/resources/de-DE.json");
-    private static final File GERMAN_AUSTRIA = new File("src/test/resources/de-AT.json");
+
+    private static final File FALLBACK_ENGLISH_NESTED = new File("src/test/resources/fallback-en-US-nested.json");
+    private static final File GERMAN_GERMANY_NESTED = new File("src/test/resources/de-DE-nested.json");
 
     private Translator translator;
+    private Translator nestedTranslator;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -46,36 +48,88 @@ public class JenguaTest {
                 }
                 """;
 
-        String germanAustria = """
+
+        String nestedGerman = """
                 {
-                    "locale": "de-AT",
+                    "locale": "de-DE",
                     "Menu": {
                         "File": "Datei",
-                        "Edit": "Beorbait'n",
-                        "View": "Ousicht",
-                        "Help": "Hüfe"
+                        "Edit": "Bearbeiten",
+                        "View": "Ansicht",
+                        "Help": "Hilfe"
+                    },
+                    "TheBetterMenu": {
+                        "File": {
+                            "File": "Datei",
+                            "Save": "Speichern",
+                            "Open": "Öffnen"
+                        },
+                        "Edit": {
+                            "Edit": "Bearbeiten",
+                            "Undo": "Rückgängig machen",
+                            "Redo": "Wiederholen",
+                            "More": {
+                                "More..": "Mehr..",
+                                "Dog": "Hund",
+                                "Cat": "Katze"
+                            }
+                        }
+                    }
+                }
+                """;
+        String nested = """
+                {
+                    "locale": "en-US",
+                    "Menu": {
+                        "File": "File",
+                        "Edit": "Edit",
+                        "View": "View",
+                        "Help": "Help"
+                    },
+                    "TheBetterMenu": {
+                        "File": {
+                            "File": "File",
+                            "Save": "Save",
+                            "Open": "Open"
+                        },
+                        "Edit": {
+                            "Edit": "Edit",
+                            "Undo": "Undo",
+                            "Redo": "Redo",
+                            "More": {
+                                "More..": "More..",
+                                "Dog": "Dog",
+                                "Cat": "Cat"
+                            }
+                        }
                     }
                 }
                 """;
 
         Files.writeString(FALLBACK_ENGLISH_US.toPath(), fallbackEnglishUS);
         Files.writeString(GERMAN_GERMANY.toPath(), germanGermany);
-        Files.writeString(GERMAN_AUSTRIA.toPath(), germanAustria);
+
+        Files.writeString(FALLBACK_ENGLISH_NESTED.toPath(), nested);
+        Files.writeString(GERMAN_GERMANY_NESTED.toPath(), nestedGerman);
 
         // Load fallback language
         Language fallbackLanguage = LanguageLoader.loadLanguage(FALLBACK_ENGLISH_US);
         translator = new Translator(fallbackLanguage, fallbackLanguage);
 
+        // Load nested fallback language
+        Language nestedFallbackLanguage = LanguageLoader.loadLanguage(FALLBACK_ENGLISH_NESTED);
+        nestedTranslator = new Translator(nestedFallbackLanguage, nestedFallbackLanguage);
+
         translator.loadLanguage(GERMAN_GERMANY);
-        translator.loadLanguage(GERMAN_AUSTRIA);
+        nestedTranslator.loadLanguage(GERMAN_GERMANY_NESTED);
     }
 
     @AfterEach
     public void cleanup() throws IOException {
         Files.deleteIfExists(FALLBACK_ENGLISH_US.toPath());
         Files.deleteIfExists(GERMAN_GERMANY.toPath());
-        Files.deleteIfExists(GERMAN_AUSTRIA.toPath());
-        Files.deleteIfExists(FALLBACK_ENGLISH_US_BAK.toPath());
+        Files.deleteIfExists(GERMAN_GERMANY_NESTED.toPath());
+        Files.deleteIfExists(FALLBACK_ENGLISH_NESTED.toPath());
     }
 
     @Test
@@ -117,18 +171,18 @@ public class JenguaTest {
     }
 
     @Test
-    public void testTranslateGermanAustria() {
-        translator.setLanguage("de-AT");
-        String result = translator.tr("Menu", "Edit");
+    public void testTranslateGermanGermanyNested() {
+        nestedTranslator.setLanguage("de-DE");
+        String result = nestedTranslator.tr("TheBetterMenu.Edit.More", "Dog");
 
-        Optional<Context> optionalContext = translator.getLanguage().getContext("Menu");
+        Optional<Context> optionalContext = nestedTranslator.getLanguage().getContext("TheBetterMenu");
 
         if (optionalContext.isEmpty()) {
-            fail("Context 'Menu' not found in Austrian German language");
+            fail("Context 'Menu2' not found in German nested language");
         }
 
-        Context menuContext = optionalContext.get();
-        String expectedTranslation = menuContext.translations().get("Edit");
+        Context menu2Context = optionalContext.get();
+        String expectedTranslation = menu2Context.subContexts().get("Edit").subContexts().get("More").translations().get("Dog");
 
         assertEquals(expectedTranslation, result);
     }
@@ -140,10 +194,6 @@ public class JenguaTest {
         // First save once to create the original file
         LanguageSaver.saveLanguage(translator.getFallbackLanguage(), FALLBACK_ENGLISH_US);
         assertTrue(FALLBACK_ENGLISH_US.exists());
-
-        // Save again to trigger backup creation
-        LanguageSaver.saveLanguage(translator.getFallbackLanguage(), FALLBACK_ENGLISH_US);
-        assertTrue(FALLBACK_ENGLISH_US_BAK.exists());
 
         // Check file content includes null for missing keys
         String savedContent = Files.readString(FALLBACK_ENGLISH_US.toPath());

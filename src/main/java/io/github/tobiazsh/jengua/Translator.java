@@ -104,19 +104,30 @@ public class Translator {
     }
 
     private void addMissingTranslation(Language language, String contextKey, String missingKey) {
-        Context context = language.getContext(contextKey).orElse(null);
+    String[] contextParts = contextKey.split("\\."); // Split the contextKey into parts
+    Context currentContext = null;
 
-        if (context == null) {
-            context = new Context(contextKey, new HashMap<>());
-            language.addContext(context);
-        }
-
-        Map<String, String> translations = context.translations();
-        if (!translations.containsKey(missingKey)) {
-            translations.put(missingKey, null); // null means untranslated
+    for (String part : contextParts) {
+        if (currentContext == null) {
+            // Top-level context
+            currentContext = language.getContext(part).orElse(null);
+            if (currentContext == null) {
+                currentContext = new Context(part, new HashMap<>(), new HashMap<>());
+                language.addContext(currentContext);
+            }
+        } else {
+            // Nested sub-context
+            Map<String, Context> subContexts = currentContext.subContexts();
+            currentContext = subContexts.computeIfAbsent(part, k -> new Context(k, new HashMap<>(), new HashMap<>()));
         }
     }
 
+    // Add the missing translation to the bottom-most context
+    Map<String, String> translations = currentContext != null ? currentContext.translations() : new HashMap<>();
+    if (!translations.containsKey(missingKey)) {
+        translations.put(missingKey, null); // null means untranslated
+    }
+}
     /**
      * Returns all available languages in the translator.
      * @return a {@link Set} of language codes representing the available languages
