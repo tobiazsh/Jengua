@@ -41,7 +41,7 @@ val localProperties = Properties().apply {
 }
 
 val keyFile: File = File("./pgp/key.asc")
-val publicKeyFile: File = File("./pgp_public/public_key.pub")
+val publicKeyFile: File = File("./pgp/public_key.pub")
 
 tasks.test {
     useJUnitPlatform()
@@ -79,6 +79,12 @@ publishing {
                 }
             }
         }
+
+        repositories {
+            maven {
+                url = uri(layout.buildDirectory.dir("staging-deploy"))
+            }
+        }
     }
 }
 
@@ -107,26 +113,6 @@ jreleaser {
         }
     }
 
-    distributions {
-        create("jengua") {
-            distributionType.set(org.jreleaser.model.Distribution.DistributionType.JAVA_BINARY)
-            artifacts {
-                artifact {
-                    path.set(buildDir.resolve("libs/Jengua-${projVer}.jar").toFile())
-                    platform.set("")
-                }
-                artifact {
-                    path.set(buildDir.resolve("libs/Jengua-${projVer}-sources.jar").toFile())
-                    platform.set("sources")
-                }
-                artifact {
-                    path.set(buildDir.resolve("libs/Jengua-${projVer}-javadoc.jar").toFile())
-                    platform.set("javadoc")
-                }
-            }
-        }
-    }
-
     signing {
         passphrase.set(localProperties.getProperty("signing.password") ?: System.getenv("SIGNING_PASSWORD"))
         publicKey.set(publicKeyFile.readText())
@@ -144,10 +130,23 @@ jreleaser {
                     password.set(localProperties.getProperty("sonatypePasswordToken"))
                     active.set(Active.RELEASE)
                     url.set("https://central.sonatype.com/api/v1/publisher")
-                    stagingRepository("build/libs")
+                    stagingRepository("build/staging-deploy")
                 }
             }
         }
+    }
+
+    checksum {
+        name.set("${project.name}-${project.version}_checksums.txt")
+
+        individual.set(true)
+
+        algorithm("SHA-256")
+        algorithm("SHA-512")
+        algorithm("MD5")
+        algorithm("SHA-1")
+
+        files.set(true)
     }
 }
 
@@ -156,7 +155,7 @@ tasks.register("verifyPublishingConfiguration") {
         // Files to check for existence
         val localProps = File("./local.properties")
         val keyFile = File("./pgp/key.asc")
-        val publicKeyFile = File("./pgp_public/public_key.pub")
+        val publicKeyFile = File("./pgp/public_key.pub")
 
         // Check if local.properties exists
         if (!localProps.exists()) {
