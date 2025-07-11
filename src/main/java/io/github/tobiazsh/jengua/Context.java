@@ -10,7 +10,7 @@ import java.util.Map;
  * @param contextKey the key for this context
  * @param translations a map of translations where the key is the translation key and the value is the translated string
  */
-public record Context(String contextKey, Map<String, String> translations) {
+public record Context(String contextKey, Map<String, String> translations, Map<String, Context> subContexts) {
 
     /**
      * Constructs a Context with the specified context key and translations.
@@ -18,9 +18,10 @@ public record Context(String contextKey, Map<String, String> translations) {
      * @param contextKey   the key for this context
      * @param translations a map of translations where the key is the translation key and the value is the translated string
      */
-    public Context(String contextKey, Map<String, String> translations) {
+    public Context(String contextKey, Map<String, String> translations, Map<String, Context> subContexts) {
         this.contextKey = contextKey;
         this.translations = new HashMap<>(translations);
+        this.subContexts = subContexts;
     }
 
     /**
@@ -28,7 +29,6 @@ public record Context(String contextKey, Map<String, String> translations) {
      *
      * @return the context key
      */
-    @Override
     public String contextKey() {
         return contextKey;
     }
@@ -39,8 +39,12 @@ public record Context(String contextKey, Map<String, String> translations) {
      * @param key the key to check
      * @return true if the translations is found, otherwise false
      */
-    public boolean contains(String key) {
+    public boolean containsTranslation(String key) {
         return translations.containsKey(key);
+    }
+
+    public boolean containsContext(String key) {
+        return subContexts.containsKey(key);
     }
 
     /**
@@ -49,9 +53,12 @@ public record Context(String contextKey, Map<String, String> translations) {
      *
      * @return a map of translations
      */
-    @Override
     public Map<String, String> translations() {
         return translations;
+    }
+
+    public Map<String, Context> subContexts() {
+        return subContexts;
     }
 
     /**
@@ -74,8 +81,24 @@ public record Context(String contextKey, Map<String, String> translations) {
      * @return the translated string with parameters interpolated, or the key if not found
      */
     public String translate(String key, Map<String, Object> parameters) {
-        if (!translations.containsKey(key)) {
-            return key; // Return the key itself if not found
+
+        // Split the key to check for sub-contexts
+        String[] parts = key.split("\\.");
+
+        // If it's directed at a sub-context, translate via that
+        if (parts.length > 1) {
+            String nextContextKey = parts[1]; // Example: Menu.File.Quit... Menu is this, which is at index 0 and the next would be File, which is at index 1
+            Context subContext = subContexts.get(parts[0]);
+
+            if (subContext != null) {
+                return subContext.translate(nextContextKey, parameters); // Translate via sub-context if found
+            } else {
+                return key; // Otherwise just return the key again
+            }
+        }
+
+        if (translations.containsKey(key)) {
+            return interpolate(translations.get(key), parameters);
         }
 
         String value = translations.getOrDefault(key, key);

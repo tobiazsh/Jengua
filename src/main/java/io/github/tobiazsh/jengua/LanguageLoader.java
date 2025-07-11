@@ -46,18 +46,42 @@ public class LanguageLoader {
             // Remove locale from root to isolate contexts
             rootObject.remove("locale");
 
-            Type type = new TypeToken<Map<String, Map<String, String>>>() {}.getType();
-            Map<String, Map<String, String>> rawContexts = new Gson().fromJson(rootObject, type);
+            Type type = new TypeToken<Map<String, JsonObject>>() {}.getType();
+            Map<String, JsonObject> rawContexts = new Gson().fromJson(rootObject, type);
 
             if (rawContexts == null) rawContexts = new HashMap<>();
 
             Map<String, Context> contextMap = new HashMap<>();
             for (var entry : rawContexts.entrySet()) {
-                contextMap.put(entry.getKey(), new Context(entry.getKey(), entry.getValue()));
+                contextMap.put(entry.getKey(), createContext(entry.getKey(), entry.getValue()));
             }
 
             return new Language(locale, contextMap);
         }
+    }
+
+    /**
+     * Creates a Context from a JSON object. Checks for multiple levels of nesting
+     * and creates a Context object with translations and sub-contexts.
+     * @param contextKey The key for the context, used to identify it.
+     * @param jsonObject The JSON object containing translations and possibly sub-contexts.
+     * @return A new context object containing translations and sub-contexts.
+     */
+    private static Context createContext(String contextKey, JsonObject jsonObject) {
+        Map<String, String> translations = new HashMap<>();
+        Map<String, Context> subContexts = new HashMap<>();
+
+        for (var entry : jsonObject.entrySet()) {
+            JsonElement value = entry.getValue();
+            if (value.isJsonObject()) {
+                // If the value is a nested object, treat it as a sub-context
+                subContexts.put(entry.getKey(), createContext(entry.getKey(), value.getAsJsonObject()));
+            } else if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                translations.put(entry.getKey(), value.getAsString());
+            }
+        }
+
+        return new Context(contextKey, translations, subContexts);
     }
 
     /**
@@ -85,14 +109,25 @@ public class LanguageLoader {
                 throw new IllegalArgumentException("Context '" + key + "' is not an object!");
             }
 
-            JsonObject contextObject = value.getAsJsonObject();
+            verifyContext(key, value.getAsJsonObject());
+        }
+    }
 
-            for (var translationEntry : contextObject.entrySet()) {
-                JsonElement translationValue = translationEntry.getValue();
-                if (translationValue.isJsonNull()) continue; // Indication that translation does not exist but is present for future translation
-                if (!translationValue.isJsonPrimitive() || !translationValue.getAsJsonPrimitive().isString()) {
-                    throw new IllegalArgumentException("Translation for key '" + translationEntry.getKey() + "' in context '" + key + "' is not a string!");
-                }
+    /**
+     * Verifies the context object for valid translations.
+     * @param contextKey the key of the context being verified
+     * @param contextObject the JSON object representing the context
+     */
+    public static void verifyContext(String contextKey, JsonObject contextObject) {
+        for (var contextEntry : contextObject.entrySet()) {
+            String key = contextEntry.getKey();
+            JsonElement value = contextEntry.getValue();
+
+            if (value.isJsonObject()){
+                // If the value is a nested object, recursively verify it as a sub-context
+                verifyContext(key, value.getAsJsonObject());
+            } else if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+                throw new IllegalArgumentException("Translation for key '" + key + "' in context '" + contextKey + "' is not a string or null!");
             }
         }
     }

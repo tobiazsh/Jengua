@@ -11,6 +11,7 @@ Java + Lengua = Jengua
 - Easy to use
 - Automatic addition of new keys
 - Extremely readable
+- Multi-Layer nesting of contexts (see json example below)
 
 ## Usage
 
@@ -27,7 +28,7 @@ translation will come from this file. It should contain a normal structure like 
 
 The structure of a language file is relatively simple:
 - Locale attribute: A unique identifier for the language. Good practice is: `language-COUNTRY`, for example: `en-US` or `de-AT`
-- A context array: This is solely to improve readability, but is required however.
+- A context array: This is solely to improve readability, but is required.
 - Inside the context array, you can add as many translations as you want.
 
 ### Example
@@ -37,11 +38,17 @@ The structure of a language file is relatively simple:
 {
     "locale": "en-US",
     
-    "MainWindow.Menu.File": {
-        "New": "New",
-        "Open": "Open",
-        "Save": "Save",
-        "Exit": "Exit"
+    "MainWindow": {
+      "Menu": {
+        "Menu": "Menu",
+        "File": {
+          "File": "File",
+          "New": "New",
+          "Open": "Open",
+          "Save": "Save",
+          "Exit": "Exit"
+        }
+      }
     },
     
     "ChildWindow.GUI": {
@@ -56,12 +63,18 @@ The structure of a language file is relatively simple:
 ```json
 {
     "locale": "de-DE",
-    
-    "MainWindow.Menu.File": {
-        "New": "Neu",
-        "Open": "Öffnen",
-        "Save": "Speichern",
-        "Exit": "Verlassen"
+
+    "MainWindow": {
+      "Menu": {
+        "Menu": "Menü",
+        "File": {
+          "File": "Datei",
+          "New": "Neu",
+          "Open": "Öffnen",
+          "Save": "Speichern",
+          "Exit": "Schließen"
+        }
+      }
     },
     
     "ChildWindow.GUI": {
@@ -259,6 +272,47 @@ public class Main {
 }
 ```
 
+### Maven Setup
+Jengua is also now available on Maven Central, so you can easily add it to your Java project using Maven or Gradle.
+To use Jengua using Maven, you can add the following dependency to your `pom.xml` (! only an example, version may differ !):
+```xml
+<repositories>
+    <repository>
+        <id>central</id>
+        <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>io.github.tobiazsh.jengua</groupId>
+        <artifactId>Jengua</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+</dependencies>
+```
+
+...or, if you use Gradle:
+```groovy
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.github.tobiazsh.jengua:Jengua:1.0.0'
+}
+```
+
+...OR if you use Gradle with Kotlin DSL:
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("io.github.tobiazsh.jengua:Jengua:1.0.0")
+}
+```
 ## Building
 To build the project, just execute:
 - `gradlew.bat build` on windows

@@ -50,22 +50,38 @@ public class LanguageSaver {
         root.addProperty("locale", language.code());
 
         for (Map.Entry<String, Context> contextEntry : language.contexts().entrySet()) {
-            JsonObject contextJson = new JsonObject();
-
-            Map<String, String> translations = contextEntry.getValue().translations();
-            for (Map.Entry<String, String> translationEntry : translations.entrySet()) {
-                if (translationEntry.getValue() == null) {
-                    contextJson.add(translationEntry.getKey(), JsonNull.INSTANCE);
-                } else {
-                    contextJson.addProperty(translationEntry.getKey(), translationEntry.getValue());
-                }
-            }
-
+            JsonObject contextJson = serializeContext(contextEntry.getValue());
             root.add(contextEntry.getKey(), contextJson);
         }
 
         try (Writer writer = new FileWriter(languageFile)) {
             gson.toJson(root, writer);
         }
+    }
+
+    /**
+     * Recursively serializes a Context object, including its sub-contexts.
+     * @param context the Context to serialize
+     * @return a JsonObject representing the serialized context
+     */
+    private static JsonObject serializeContext(Context context) {
+        JsonObject contextJson = new JsonObject();
+
+        // Add translations
+        for (Map.Entry<String, String> translationEntry : context.translations().entrySet()) {
+            if (translationEntry.getValue() == null) {
+                contextJson.add(translationEntry.getKey(), JsonNull.INSTANCE);
+            } else {
+                contextJson.addProperty(translationEntry.getKey(), translationEntry.getValue());
+            }
+        }
+
+        // Add sub-contexts
+        for (Map.Entry<String, Context> subContextEntry : context.subContexts().entrySet()) {
+            JsonObject subContextJson = serializeContext(subContextEntry.getValue());
+            contextJson.add(subContextEntry.getKey(), subContextJson);
+        }
+
+        return contextJson;
     }
 }
