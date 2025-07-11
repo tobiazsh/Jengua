@@ -66,6 +66,8 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
 
     /**
      * Returns the sub-contexts map for this context.
+     *
+     * @return a map of sub-contexts where the key is the sub-context key and the value is the Context object for that sub-context
      */
     public Map<String, Context> subContexts() {
         return subContexts;
