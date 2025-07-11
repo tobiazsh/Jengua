@@ -18,6 +18,8 @@ public class JenguaTest {
     private static final File FALLBACK_ENGLISH_NESTED = new File("src/test/resources/fallback-en-US-nested.json");
     private static final File GERMAN_GERMANY_NESTED = new File("src/test/resources/de-DE-nested.json");
 
+    private static final File CUSTOM_LANGUAGE_FILE = new File("src/test/resources/de-DE_CUSTOM.json");
+
     private Translator translator;
     private Translator nestedTranslator;
 
@@ -130,6 +132,7 @@ public class JenguaTest {
         Files.deleteIfExists(GERMAN_GERMANY.toPath());
         Files.deleteIfExists(GERMAN_GERMANY_NESTED.toPath());
         Files.deleteIfExists(FALLBACK_ENGLISH_NESTED.toPath());
+        //Files.deleteIfExists(CUSTOM_LANGUAGE_FILE.toPath());
     }
 
     @Test
@@ -197,6 +200,17 @@ public class JenguaTest {
 
         // Check file content includes null for missing keys
         String savedContent = Files.readString(FALLBACK_ENGLISH_US.toPath());
+        assertTrue(savedContent.contains("\"Save\": null"));
+    }
+
+    @Test
+    public void saveToFile() throws IOException {
+        translator.tr("Menu", "Save"); // This will add the missing key with null
+
+        LanguageSaver.saveLanguageFileTo(translator.getFallbackLanguage(), CUSTOM_LANGUAGE_FILE);
+        assertTrue(CUSTOM_LANGUAGE_FILE.exists());
+
+        String savedContent = Files.readString(CUSTOM_LANGUAGE_FILE.toPath());
         assertTrue(savedContent.contains("\"Save\": null"));
     }
 }
