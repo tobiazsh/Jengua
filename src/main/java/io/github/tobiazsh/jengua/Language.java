@@ -74,8 +74,25 @@ public record Language(String code, Map<String, Context> contexts) {
      * @return the translated string or the key if not found
      */
     public String translate(String contextKey, String key, Map<String, Object> parameters) {
-        Context context = contexts.get(contextKey);
-        if (context == null) return key;
-        return context.translate(key, parameters);
+        String[] parts = contextKey.split("\\.");
+        Context currentContext = null;
+
+        for (String part : parts) {
+            if (currentContext == null) {
+                // Top-level context
+                currentContext = contexts.get(part);
+            } else {
+                // Nested sub-context
+                currentContext = currentContext.subContexts().get(part);
+            }
+
+            if (currentContext == null) {
+                // Context not found, return the key
+                return key;
+            }
+        }
+
+        // Translate using the final context
+        return currentContext != null ? currentContext.translate(key, parameters) : key;
     }
 }
