@@ -6,10 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,30 +31,58 @@ public class LanguageLoader {
      */
     public static Language loadLanguage(File languageFile) throws IOException {
         try (Reader reader = new FileReader(languageFile)) {
-            JsonElement root = JsonParser.parseReader(reader);
-            JsonObject rootObject = root.getAsJsonObject();
-
-            // Verify structure
-            verifyStructure(rootObject);
-
-            // Extract locale
-            String locale = rootObject.get("locale").getAsString();
-
-            // Remove locale from root to isolate contexts
-            rootObject.remove("locale");
-
-            Type type = new TypeToken<Map<String, JsonObject>>() {}.getType();
-            Map<String, JsonObject> rawContexts = new Gson().fromJson(rootObject, type);
-
-            if (rawContexts == null) rawContexts = new HashMap<>();
-
-            Map<String, Context> contextMap = new HashMap<>();
-            for (var entry : rawContexts.entrySet()) {
-                contextMap.put(entry.getKey(), createContext(entry.getKey(), entry.getValue()));
-            }
-
-            return new Language(locale, contextMap);
+            return parseLanguage(reader);
         }
+    }
+
+    /**
+     * Loads a Language from a JSON file in resources (files, that are packed in the JAR).
+     *
+     * @param resourcePath the path to the JSON file in resources, e.g. "/languages/en-US.json"
+     * @return a Language object containing the locale and contexts
+     * @throws IOException if an error occurs while reading the resource
+     */
+    public static Language loadLanguageFromResources(String resourcePath) throws IOException {
+        try (InputStream in = LanguageLoader.class.getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new FileNotFoundException("Resource not found: " + resourcePath);
+            }
+            try (Reader reader = new InputStreamReader(in)) {
+                return parseLanguage(reader);
+            }
+        }
+    }
+
+    /**
+     * Parses a Language from a Reader.
+     */
+    private static Language parseLanguage(Reader reader) {
+        JsonElement root = JsonParser.parseReader(reader);
+        if (!root.isJsonObject()) {
+            throw new IllegalArgumentException("Root element is not a JSON object!");
+        }
+
+        JsonObject rootObject = root.getAsJsonObject();
+
+        // Verify structure
+        verifyStructure(rootObject);
+
+        // Locale
+        String locale = rootObject.get("locale").getAsString(); // Extract locale
+        rootObject.remove("locale"); // Remove locale from root to isolate contexts
+
+
+        Type type = new TypeToken<Map<String, JsonObject>>() {}.getType();
+        Map<String, JsonObject> rawContexts = new Gson().fromJson(rootObject, type);
+
+        if (rawContexts == null) rawContexts = new HashMap<>();
+
+        Map<String, Context> contextMap = new HashMap<>();
+        for (var entry : rawContexts.entrySet()) {
+            contextMap.put(entry.getKey(), createContext(entry.getKey(), entry.getValue()));
+        }
+
+        return new Language(locale, contextMap);
     }
 
     /**

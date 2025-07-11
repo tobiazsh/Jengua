@@ -2,6 +2,7 @@ package io.github.tobiazsh.jengua;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,16 @@ public class Translator {
      */
     public void loadLanguage(File file) throws IOException {
         Language language = LanguageLoader.loadLanguage(file);
+        languages.put(language.code(), language);
+    }
+
+    /**
+     * Loads a language from a file and adds it to the translator.
+     * @param file the file containing the language data in JSON format
+     * @throws IOException if an error occurs while reading the file
+     */
+    public void loadLanguageFromResources(Path file) throws IOException {
+        Language language = LanguageLoader.loadLanguageFromResources(file.toString());
         languages.put(language.code(), language);
     }
 
