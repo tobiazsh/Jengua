@@ -44,6 +44,12 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
         return translations.containsKey(key);
     }
 
+    /**
+     * Checks if the context contains a sub-context with the given key.
+     *
+     * @param key the key of the sub-context to check
+     * @return true if the sub-context is found, otherwise false
+     */
     public boolean containsContext(String key) {
         return subContexts.containsKey(key);
     }
