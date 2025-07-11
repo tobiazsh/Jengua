@@ -52,7 +52,19 @@ public class LanguageSaver {
      */
     public static void saveLanguage(Language language, File languageFile) throws IOException {
         createBackup(languageFile); // Create a backup before saving
+        saveLanguageFileTo(language, languageFile);
+    }
 
+    public static void saveLanguageFileTo(Language language, File languageFile) throws IOException {
+
+        JsonObject root = serializeLanguage(language);
+
+        try (Writer writer = new FileWriter(languageFile)) {
+            gson.toJson(root, writer);
+        }
+    }
+
+    public static JsonObject serializeLanguage(Language language) {
         JsonObject root = new JsonObject();
         root.addProperty("locale", language.code());
 
@@ -61,9 +73,7 @@ public class LanguageSaver {
             root.add(contextEntry.getKey(), contextJson);
         }
 
-        try (Writer writer = new FileWriter(languageFile)) {
-            gson.toJson(root, writer);
-        }
+        return root;
     }
 
     /**
