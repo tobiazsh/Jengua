@@ -9,6 +9,7 @@ import java.util.Map;
  *
  * @param contextKey the key for this context
  * @param translations a map of translations where the key is the translation key and the value is the translated string
+ * @param subContexts a map of sub-contexts, where the key is the sub-context key and the value is the Context object for that sub-context
  */
 public record Context(String contextKey, Map<String, String> translations, Map<String, Context> subContexts) {
 
