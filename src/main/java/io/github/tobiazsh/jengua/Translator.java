@@ -17,6 +17,12 @@ public class Translator {
     private final Language fallbackLanguage;
     private Language currentLanguage;
 
+    /**
+     * Constructs a Translator with a default language and a fallback language.
+     * The fallback language is used when no translation is found in the current language.
+     * @param defaultLanguage the default language to use for translations
+     * @param fallbackLanguage the fallback language to use when no translation is found in the current language
+     */
     public Translator(Language defaultLanguage, Language fallbackLanguage) {
         this.currentLanguage = defaultLanguage;
         this.fallbackLanguage = fallbackLanguage;

@@ -16,8 +16,10 @@ import java.util.Map;
  */
 public class LanguageLoader {
 
+    /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
     private LanguageLoader() {
-        // Private constructor to prevent instantiation
     }
 
     /**

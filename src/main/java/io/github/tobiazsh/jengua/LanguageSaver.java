@@ -20,6 +20,13 @@ public class LanguageSaver {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
     /**
+     * Private constructor to prevent instantiation of this utility class.
+     * This class should not be instantiated, as it only contains static methods.
+     */
+    private LanguageSaver() {
+    }
+
+    /**
      * Creates a backup of the given language in the specified path.
      * @param file the language file to back up
      * @throws IOException if renaming the original file fails
