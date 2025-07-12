@@ -55,6 +55,12 @@ public class LanguageSaver {
         saveLanguageFileTo(language, languageFile);
     }
 
+    /**
+     * Saves a Language object to a specified file.
+     * @param language the Language to save
+     * @param languageFile the file to save the language data to
+     * @throws IOException if an error occurs while writing to the file
+     */
     public static void saveLanguageFileTo(Language language, File languageFile) throws IOException {
 
         JsonObject root = serializeLanguage(language);
@@ -64,6 +70,11 @@ public class LanguageSaver {
         }
     }
 
+    /**
+     * Serializes a Language object to a JsonObject.
+     * @param language the Language to serialize
+     * @return a JsonObject representing the serialized language
+     */
     public static JsonObject serializeLanguage(Language language) {
         JsonObject root = new JsonObject();
         root.addProperty("locale", language.code());
