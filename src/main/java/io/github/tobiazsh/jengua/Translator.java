@@ -48,8 +48,8 @@ public class Translator {
      * @param file the file containing the language data in JSON format
      * @throws IOException if an error occurs while reading the file
      */
-    public void loadLanguageFromResources(Path file) throws IOException {
-        Language language = LanguageLoader.loadLanguageFromResources(file.toString());
+    public void loadLanguageFromResources(String file) throws IOException {
+        Language language = LanguageLoader.loadLanguageFromResources(file);
         languages.put(language.code(), language);
     }
 
