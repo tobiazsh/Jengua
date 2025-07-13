@@ -193,6 +193,7 @@ public class JenguaTest {
     @Test
     public void testSaveLanguageCreatesBackupAndSaves() throws IOException {
         translator.tr("Menu", "Save"); // This will add the missing key with null
+        assertNotNull(translator.tr("Menu", "Save")); // Check if uses "null" as translation
 
         // First save once to create the original file
         LanguageSaver.saveLanguage(translator.getFallbackLanguage(), FALLBACK_ENGLISH_US);
