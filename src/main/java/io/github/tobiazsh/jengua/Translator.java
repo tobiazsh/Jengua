@@ -106,14 +106,15 @@ public class Translator {
     public String tr(String context, String key, Map<String, Object> parameters) {
         if (currentLanguage != null) {
             String result = currentLanguage.translate(context, key, parameters);
-            if (!result.equals(key)) return result;
+            if (result != null && !result.equals(key)) return result;
         }
 
         if (fallbackLanguage != null) {
             String fallback = fallbackLanguage.translate(context, key, parameters);
-            if (!fallback.equals(key)) return fallback;
+            if (fallback != null && !fallback.equals(key)) return fallback;
 
-            addMissingTranslation(fallbackLanguage, context, key);
+            if (!fallbackLanguage.containsTranslationKeyAnywhere(key))
+                addMissingTranslation(fallbackLanguage, context, key);
         }
 
         // No fallback language available; cannot translate. Return key.
