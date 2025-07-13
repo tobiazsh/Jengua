@@ -45,6 +45,28 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
     }
 
     /**
+     * Checks if the context or any of its sub-contexts contains a translation for the given key, regardless of it's value (translation can also be null!).
+     *
+     * @param key the key to check
+     * @return true if the translation is found in this context or any sub-context, otherwise false
+     */
+    public boolean containsTranslationKeyAnywhere(String key) {
+        // Check if the key exists in the translations map
+        if (translations.containsKey(key))
+            return true;
+
+        // Check in sub-contexts recursively
+        for (Context subContext : subContexts.values()) {
+            if (subContext.containsTranslationKeyAnywhere(key)) {
+                return true;
+            }
+        }
+
+        // Key not found in this context or any sub-contexts
+        return false;
+    }
+
+    /**
      * Checks if the context contains a sub-context with the given key.
      *
      * @param key the key of the sub-context to check

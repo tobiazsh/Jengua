@@ -95,4 +95,14 @@ public record Language(String code, Map<String, Context> contexts) {
         // Translate using the final context
         return currentContext != null ? currentContext.translate(key, parameters) : key;
     }
+
+    /**
+     * Checks if this language contains the specified translation key in any context regardless of its value (translation can also be null!).
+     * @param key the translation key to check
+     * @return true if the key exists in any context, false otherwise
+     */
+    public boolean containsTranslationKeyAnywhere(String key) {
+        return contexts.values().stream()
+                .anyMatch(context -> context.containsTranslationKeyAnywhere(key));
+    }
 }
