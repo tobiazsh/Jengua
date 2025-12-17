@@ -74,26 +74,47 @@ public record Language(String code, Map<String, Context> contexts) {
      * @return the translated string or the key if not found
      */
     public String translate(String contextKey, String key, Map<String, Object> parameters) {
-        String[] parts = contextKey.split("\\.");
+        Context currentContext = getCtx(contextKey);
+        return currentContext == null ? key : currentContext.translate(key, parameters);
+    }
+
+    /**
+     * Translates the given key in the specified context with the provided parameters.
+     * @param contextKey the key of the context to use for translation
+     * @param key the key to translate
+     * @param params the parameters to replace in the translation template
+     * @return the translated string or the key if not found
+     */
+    public String translate(String contextKey, String key, Object... params) {
+        Context currentContext = getCtx(contextKey);
+        return currentContext == null ? key : currentContext.translate(key, params);
+    }
+
+    /**
+     * Retrieves the Context object based on a dot-separated context key.
+     * @param ctxKey the dot-separated context key
+     * @return the Context object if found, otherwise returns null!
+     */
+    private Context getCtx(String ctxKey) {
+        String[] parts = ctxKey.split("\\.");
         Context currentContext = null;
 
         for (String part : parts) {
             if (currentContext == null) {
-                // Top-level context
+                // TLC (Top-Level Context)
                 currentContext = contexts.get(part);
             } else {
-                // Nested sub-context
+                // NST (Nested Sub-Context)
                 currentContext = currentContext.subContexts().get(part);
             }
 
             if (currentContext == null) {
-                // Context not found, return the key
-                return key;
+                // Context not found; return null
+                return null;
             }
         }
 
-        // Translate using the final context
-        return currentContext != null ? currentContext.translate(key, parameters) : key;
+        return currentContext;
     }
 
     /**
