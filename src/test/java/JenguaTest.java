@@ -33,7 +33,10 @@ public class JenguaTest {
                         "File": "File",
                         "Edit": "Edit",
                         "View": "View",
-                        "Help": "Help"
+                        "Help": "Help",
+                        "Browser": "Browser",
+                        "Navigate to {}": "Navigate to {}",
+                        "Exception {} occurred": "Exception {} occurred"
                     }
                 }
                """;
@@ -45,7 +48,10 @@ public class JenguaTest {
                         "File": "Datei",
                         "Edit": "Bearbeiten",
                         "View": "Ansicht",
-                        "Help": "Hilfe"
+                        "Help": "Hilfe",
+                        "Browser": "Browser",
+                        "Navigate to {}": "Navigiere zu {}",
+                        "Exception {} occurred": "Ausnahme {} ist aufgetreten"
                     }
                 }
                 """;
@@ -189,6 +195,43 @@ public class JenguaTest {
 
         assertEquals(expectedTranslation, result);
     }
+
+    @Test
+    public void testTranslateGermanGermanyPositional() {
+        translator.setLanguage("de-DE");
+        String result = translator.tr("Menu", "Navigate to {}", "HomePage");
+
+        Optional<Context> optionalContext = translator.getLanguage().getContext("Menu");
+
+        if (optionalContext.isEmpty()) {
+            fail("Context 'Menu' not found in German language");
+        }
+
+        Context menuContext = optionalContext.get();
+        String template = menuContext.translations().get("Navigate to {}");
+        String expectedTranslation = template.replace("{}", "HomePage");
+
+        assertEquals(expectedTranslation, result);
+    }
+
+    @Test
+    public void testTranslateGermanGermanyPositionalException() {
+        translator.setLanguage("de-DE");
+        String result = translator.tr("Menu", "Exception {} occurred", "NullPointerException");
+
+        Optional<Context> optionalContext = translator.getLanguage().getContext("Menu");
+
+        if (optionalContext.isEmpty()) {
+            fail("Context 'Menu' not found in German language");
+        }
+
+        Context menuContext = optionalContext.get();
+        String template = menuContext.translations().get("Exception {} occurred");
+        String expectedTranslation = template.replace("{}", "NullPointerException");
+
+        assertEquals(expectedTranslation, result);
+    }
+
 
     @Test
     public void testSaveLanguageCreatesBackupAndSaves() throws IOException {
