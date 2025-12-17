@@ -90,7 +90,7 @@ publishing {
 
 jreleaser {
     project {
-        authors.add("Tobias S.")
+        authors.add("Tobiazsh")
         license.set("MIT")
         links {
             homepage.set("https://github.com/tobiazsh/jengua")
