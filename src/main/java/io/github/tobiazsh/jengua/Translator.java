@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**Translator class for managing multiple languages and translating keys in specific contexts.
  * It allows loading languages from files, setting the current language, and translating keys with parameters.
@@ -97,27 +98,44 @@ public class Translator {
     /**
      * Translates key in context with parameters.
      * Auto-adds missing translations to the fallback language. Their value will be null, indicating that they are untranslated.
+     * {} is used as parameter placeholders.
+     * @param context the context in the language
+     * @param key the key to translate
+     * @param params the parameters to replace in the translation template
+     * @return the translated string, or the key itself if no translation is found
+     */
+    public String tr(String context, String key, Object... params) {
+        return tr(context, key, k -> currentLanguage.translate(context, k, params));
+    }
+
+    /**
+     * Translates key in context with parameters.
+     * Auto-adds missing translations to the fallback language. Their value will be null, indicating that they are untranslated.
      * @param context the context in the language
      * @param key the key to translate
      * @param parameters a map of parameters to replace in the translation template
      * @return the translated string, or the key itself if no translation is found
      */
     public String tr(String context, String key, Map<String, Object> parameters) {
+        // No fallback language available; cannot translate. Return key.
+        return tr(context, key, k -> currentLanguage.translate(context, k, parameters));
+    }
+
+    private String tr(String context, String key, Function<String, String> translateFunction) {
         if (currentLanguage != null) {
-            String result = currentLanguage.translate(context, key, parameters);
+            String result = translateFunction.apply(key);
             if (result != null && !result.equals(key)) return result;
         }
 
         if (fallbackLanguage != null) {
-            String fallback = fallbackLanguage.translate(context, key, parameters);
+            String fallback = fallbackLanguage.translate(context, key);
             if (fallback != null && !fallback.equals(key)) return fallback;
 
             if (!fallbackLanguage.containsTranslationKeyAnywhere(key))
                 addMissingTranslation(fallbackLanguage, context, key);
         }
 
-        // No fallback language available; cannot translate. Return key.
-        return key;
+        return key; // No current language set; cannot translate. Return key.
     }
 
     private void addMissingTranslation(Language language, String contextKey, String missingKey) {

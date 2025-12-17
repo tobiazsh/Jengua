@@ -2,6 +2,7 @@ package io.github.tobiazsh.jengua;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
  * Represents a context for translations, containing a key and a map of translations.
@@ -45,7 +46,7 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
     }
 
     /**
-     * Checks if the context or any of its sub-contexts contains a translation for the given key, regardless of it's value (translation can also be null!).
+     * Checks if the context or any of its sub-contexts contains a translation for the given key, regardless of its value (translation can also be null!).
      *
      * @param key the key to check
      * @return true if the translation is found in this context or any sub-context, otherwise false
@@ -121,11 +122,12 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
 
         // If it's directed at a sub-context, translate via that
         if (parts.length > 1) {
-            String nextContextKey = parts[1]; // Example: Menu.File.Quit... Menu is this, which is at index 0 and the next would be File, which is at index 1
+            // Join the remainder of the key and pass it down to the sub-context
             Context subContext = subContexts.get(parts[0]);
 
             if (subContext != null) {
-                return subContext.translate(nextContextKey, parameters); // Translate via sub-context if found
+                String remainder = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
+                return subContext.translate(remainder, parameters); // Translate via sub-context if found
             } else {
                 return key; // Otherwise just return the key again
             }
@@ -142,6 +144,49 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
     }
 
     /**
+     * New varargs overload: translate using positional placeholders ("{}").
+     * Behavior/assumptions:
+     * - If a translation exists for the key, that translation is used and any "{}" placeholders are replaced in order by the provided args.
+     * - If no translation exists and the first vararg is a String, that String is treated as a fallback template and the remaining varargs are used to fill placeholders.
+     * - If there are more placeholders than args, remaining placeholders are left as-is. Extra args are ignored.
+     * Example: translate("err.key", "Found {} apples and {} pears", 2, 3)
+     * @param key the key to translate
+     * @param args the positional arguments to replace "{}" placeholders
+     * @return the translated string
+     */
+    public String translate(String key, Object... args) {
+        // Split the key to check for sub-contexts
+        String[] parts = key.split("\\.");
+
+        if (parts.length > 1) {
+            Context subContext = subContexts.get(parts[0]);
+            if (subContext != null) {
+                String remainder = String.join(".", Arrays.copyOfRange(parts, 1, parts.length));
+                return subContext.translate(remainder, args);
+            } else {
+                return key;
+            }
+        }
+
+        // If we have a stored translation, use it and perform positional interpolation
+        if (translations.containsKey(key)) {
+            String template = translations.get(key);
+            if (template == null) return key;
+            return interpolatePositional(template, args);
+        }
+
+        // No stored translation. If first arg is a String, treat it as a fallback template
+        if (args != null && args.length > 0 && args[0] instanceof String) {
+            String template = (String) args[0];
+            Object[] rest = Arrays.copyOfRange(args, 1, args.length);
+            return interpolatePositional(template, rest);
+        }
+
+        // Nothing to interpolate, return key
+        return key;
+    }
+
+    /**
      * This method replaces placeholders in the format {key} with the corresponding values from the parameters map.
      */
     private String interpolate(String template, Map<String, Object> parameters) {
@@ -153,5 +198,35 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
         }
 
         return result;
+    }
+
+    /**
+     * Replaces positional placeholders `{}` in order with the provided args.
+     */
+    private String interpolatePositional(String template, Object... args) {
+        if (template == null || template.isEmpty() || args == null || args.length == 0) return template;
+
+        StringBuilder stringBuilder = new StringBuilder();
+        int argIndex = 0;
+        int i = 0;
+        while (i < template.length()) {
+            int index = template.indexOf("{}", i);
+            if (index == -1) {
+                stringBuilder.append(template, i, template.length());
+                break;
+            }
+            // append up to placeholder
+            stringBuilder.append(template, i, index);
+            // append arg if available
+            if (argIndex < args.length) {
+                stringBuilder.append(args[argIndex++]);
+            } else {
+                // no arg available, keep the placeholder
+                stringBuilder.append("{}");
+            }
+            i = index + 2;
+        }
+
+        return stringBuilder.toString();
     }
 }
