@@ -78,6 +78,13 @@ public record Language(String code, Map<String, Context> contexts) {
         return currentContext == null ? key : currentContext.translate(key, parameters);
     }
 
+    /**
+     * Translates the given key in the specified context with the provided parameters.
+     * @param contextKey the key of the context to use for translation
+     * @param key the key to translate
+     * @param params the parameters to replace in the translation template
+     * @return the translated string or the key if not found
+     */
     public String translate(String contextKey, String key, Object... params) {
         Context currentContext = getCtx(contextKey);
         return currentContext == null ? key : currentContext.translate(key, params);
