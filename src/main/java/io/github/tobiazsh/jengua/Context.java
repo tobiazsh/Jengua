@@ -45,7 +45,7 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
     }
 
     /**
-     * Checks if the context or any of its sub-contexts contains a translation for the given key, regardless of it's value (translation can also be null!).
+     * Checks if the context or any of its sub-contexts contains a translation for the given key, regardless of its value (translation can also be null!).
      *
      * @param key the key to check
      * @return true if the translation is found in this context or any sub-context, otherwise false
