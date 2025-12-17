@@ -121,7 +121,7 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
 
         // If it's directed at a sub-context, translate via that
         if (parts.length > 1) {
-            String nextContextKey = parts[1]; // Example: Menu.File.Quit... Menu is this, which is at index 0 and the next would be File, which is at index 1
+            // Join the remainder of the key and pass it down to the sub-context
             Context subContext = subContexts.get(parts[0]);
 
             if (subContext != null) {
