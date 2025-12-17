@@ -150,6 +150,9 @@ public record Context(String contextKey, Map<String, String> translations, Map<S
      * - If no translation exists and the first vararg is a String, that String is treated as a fallback template and the remaining varargs are used to fill placeholders.
      * - If there are more placeholders than args, remaining placeholders are left as-is. Extra args are ignored.
      * Example: translate("err.key", "Found {} apples and {} pears", 2, 3)
+     * @param key the key to translate
+     * @param args the positional arguments to replace "{}" placeholders
+     * @return the translated string
      */
     public String translate(String key, Object... args) {
         // Split the key to check for sub-contexts
